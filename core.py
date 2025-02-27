@@ -91,6 +91,7 @@ class TCCIDesktopET:
         """
         # Initializes the eye-tracking system
         self.native_lib.eye_tracking_init.restype = ctypes.c_int
+        self.native_lib.get_version.restype = ctypes.c_char_p
 
         self.native_lib.eye_tracking_register.restype = ctypes.c_int
         self.native_lib.eye_tracking_register.argtypes = [ctypes.c_char_p]
@@ -100,7 +101,7 @@ class TCCIDesktopET:
         //             screen_width_px, screen_height_px - screen size in pixel
         //             dpi_x, dpi_y - screen dpi
         """
-        self.native_lib.set_camera_screen_info.argtypes = [ctypes.c_float, ctypes.c_float, ctypes.c_int, ctypes.c_int,
+        self.native_lib.set_camera_screen_info.argtypes = [ctypes.c_float, ctypes.c_float,
                                                            ctypes.c_float, ctypes.c_float]
         self.native_lib.set_camera_screen_info.restype = ctypes.c_int
         # Starts the eye-tracking calibration process
@@ -155,6 +156,9 @@ class TCCIDesktopET:
         self.native_lib.export_calibration.argtypes = [ctypes.POINTER(ctypes.c_char_p)]
         self.native_lib.export_calibration.restype = ctypes.c_int
 
+        self.native_lib.set_tracing_region.restype = ctypes.c_int
+        self.native_lib.set_calibration_mode.restype = ctypes.c_int
+
         # Image size
         self.image_width = 640
         self.image_height = 480
@@ -162,6 +166,15 @@ class TCCIDesktopET:
         self.image = np.zeros((self.image_height, self.image_width, 3), dtype=np.uint8)
         # Screen size
         self.screen_width, self.screen_height = 1920, 1080
+
+    def set_tracing_region(self, x: int, y: int, width: int, height: int):
+        self.native_lib.set_tracing_region(x, y, width, height)
+
+    def set_cali_mode(self, cali_mode: int):
+        if cali_mode not in [5, 9, 13]:
+            raise ValueError(f"Invalid calibration mode: {cali_mode}, you need to choose from 5, 9, and 13.")
+        else:
+            self.native_lib.set_calibration_mode(cali_mode)
 
     def set_cam_screen_info(self, camera_position=(17.09, -0.65), screen_size=(1920, 1080),
                             screen_size_inch=(34.4 / 2.54, 19.4 / 2.54)):
@@ -397,3 +410,6 @@ class TCCIDesktopET:
             cali_info = cali_info_ptr.value.decode('utf-8')
             return status, cali_info
         return status, None
+
+    def get_version(self):
+        return self.native_lib.get_version().decode('utf-8')

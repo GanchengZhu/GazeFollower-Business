@@ -1,7 +1,6 @@
 # _*_ coding: utf-8 _*_
 # Author: GC Zhu
 # Email: zhugc2016@gmail.com
-import ctypes
 
 import pygame
 from pygame import FULLSCREEN, HWSURFACE
@@ -11,7 +10,10 @@ from graphics import Graphics
 
 # initialize TCCIDesktopET
 et_library = TCCIDesktopET()
+print("Eye tracker library version:", et_library.get_version())
 et_library.eye_tracking_init(cam_id=0, look_ahead=2, preprocessing_type=1)
+et_library.set_cali_mode(9)
+et_library.set_tracing_region(200, 200, 1920 - 400, 1080 - 400)
 
 print("Starting eye tracking registration process...")
 expired_days = et_library.eye_tracking_register("c8f076bc10dd43d6")
